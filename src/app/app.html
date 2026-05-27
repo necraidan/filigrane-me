@@ -1,0 +1,182 @@
+<div class="app">
+  <header class="app__header">
+    <h1 class="app__title">Filigrane<span class="app__title-accent">.me</span></h1>
+    <p class="app__subtitle">Ajoutez un filigrane en diagonale sur vos images</p>
+  </header>
+
+  <main class="app__main">
+    <!-- ── Zone de dépôt ──────────────────────────────────────────────────── -->
+    @if (state() === 'idle' || state() === 'error') {
+      <div
+        class="drop-zone"
+        [class.drop-zone--dragging]="isDragging()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        (click)="openFilePicker()"
+        (keydown.enter)="openFilePicker()"
+        (keydown.space)="openFilePicker()"
+        role="button"
+        tabindex="0"
+        aria-label="Zone de dépôt : cliquez ou glissez une image JPG ou PNG"
+      >
+        <div class="drop-zone__icon" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+            />
+          </svg>
+        </div>
+        <p class="drop-zone__label">Glissez une image ici</p>
+        <p class="drop-zone__hint">ou cliquez pour sélectionner</p>
+        <p class="drop-zone__formats">JPG · JPEG · PNG</p>
+      </div>
+
+      @if (state() === 'error') {
+        <p class="error-msg" role="alert">{{ errorMessage() }}</p>
+      }
+    }
+
+    <!-- ── Aperçu + formulaire ────────────────────────────────────────────── -->
+    @if (state() === 'preview' || state() === 'processing') {
+      <div class="workspace">
+        <div class="workspace__preview">
+          <img [src]="previewUrl()" alt="Aperçu de l'image originale" class="workspace__image" />
+          <button class="btn-ghost" type="button" (click)="reset()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Changer d'image
+          </button>
+        </div>
+
+        <div class="workspace__form">
+          <label class="form-label" for="watermarkText">Texte du filigrane</label>
+          <input
+            id="watermarkText"
+            class="form-input"
+            type="text"
+            placeholder="Ex : Confidentiel, © Mon entreprise…"
+            [ngModel]="watermarkText()"
+            (ngModelChange)="watermarkText.set($event)"
+            [disabled]="state() === 'processing'"
+            autocomplete="off"
+            maxlength="80"
+            aria-describedby="watermarkHint"
+          />
+          <p id="watermarkHint" class="form-hint">Maximum 80 caractères</p>
+
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="processWatermark()"
+            [disabled]="!canProcess() || state() === 'processing'"
+          >
+            @if (state() === 'processing') {
+              <span class="spinner" role="status" aria-label="Traitement en cours"></span>
+              Traitement en cours…
+            } @else {
+              Appliquer le filigrane
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (state() === 'done') {
+      <div class="result">
+        <div class="result__image-wrapper">
+          <img [src]="resultUrl()" alt="Image avec filigrane appliqué" class="result__image" />
+        </div>
+
+        <div class="result__toolbar">
+          <div class="opacity-control">
+            <label class="opacity-control__label" for="opacitySlider">Opacité</label>
+            <input
+              id="opacitySlider"
+              class="opacity-control__slider"
+              type="range"
+              min="0.05"
+              max="1"
+              step="0.05"
+              [style.--pct]="opacityPercent()"
+              [ngModel]="opacity()"
+              (ngModelChange)="onOpacityChange($event)"
+              aria-label="Opacité du filigrane"
+            />
+            <span class="opacity-control__value">{{ opacityPercent() }}&nbsp;%</span>
+          </div>
+
+          <div class="result__actions">
+            <button class="btn-primary" type="button" (click)="download()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                />
+              </svg>
+              Télécharger
+            </button>
+            <button class="btn-secondary" type="button" (click)="reset()">Nouvelle image</button>
+          </div>
+        </div>
+      </div>
+    }
+  </main>
+
+  <footer class="app__footer">
+    <p>Aucune donnée n'est stockée — tout est traité localement dans votre navigateur.</p>
+    <a
+      class="app__footer-link"
+      href="https://github.com/necraidan/filigrane-me"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Code source sur GitHub"
+    >
+      <svg
+        class="app__footer-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.165c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.3-5.467-1.332-5.467-5.93 0-1.31.468-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23a11.52 11.52 0 013.003-.404c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.216.694.824.576C20.565 21.796 24 17.298 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      GitHub
+    </a>
+  </footer>
+
+  <!-- Input fichier caché — déclenché via openFilePicker() -->
+  <input
+    #fileInput
+    class="visually-hidden"
+    type="file"
+    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+    (change)="onFileSelected($event)"
+    tabindex="-1"
+    aria-hidden="true"
+  />
+</div>
