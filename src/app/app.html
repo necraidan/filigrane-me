@@ -101,7 +101,12 @@
     @if (state() === 'done') {
       <div class="result">
         <div class="result__image-wrapper">
-          <img [src]="resultUrl()" alt="Image avec filigrane appliqué" class="result__image" />
+          <img
+            [src]="resultUrl()"
+            alt="Image avec filigrane appliqué"
+            class="result__image"
+            [class.result__image--updating]="isUpdating()"
+          />
         </div>
 
         <div class="result__toolbar">
@@ -120,6 +125,18 @@
               aria-label="Opacité du filigrane"
             />
             <span class="opacity-control__value">{{ opacityPercent() }}&nbsp;%</span>
+          </div>
+
+          <div class="color-control">
+            <label class="color-control__label" for="colorPicker">Couleur</label>
+            <input
+              id="colorPicker"
+              class="color-control__input"
+              type="color"
+              [ngModel]="color()"
+              (ngModelChange)="onColorChange($event)"
+              aria-label="Couleur du filigrane"
+            />
           </div>
 
           <div class="result__actions">

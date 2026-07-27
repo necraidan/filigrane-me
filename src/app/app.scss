@@ -294,6 +294,9 @@ $radius-sm:  8px;
   object-fit: contain;
   border-radius: $radius-sm;
   display: block;
+  transition: opacity .2s;
+
+  &--updating { opacity: .6; }
 }
 
 .result__toolbar {
@@ -380,6 +383,48 @@ $radius-sm:  8px;
   min-width: 3.2rem;
   text-align: right;
   flex-shrink: 0;
+}
+
+.color-control {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+
+.color-control__label {
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+.color-control__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  background: $surface;
+  cursor: pointer;
+  transition: border-color .2s;
+
+  &:hover,
+  &:focus-visible { border-color: $accent; outline: none; }
+
+  &::-webkit-color-swatch-wrapper { padding: 4px; }
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: calc($radius-sm - 4px);
+  }
+  &::-moz-color-swatch {
+    border: none;
+    border-radius: calc($radius-sm - 4px);
+  }
 }
 
 .result__actions {
